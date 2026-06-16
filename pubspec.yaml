@@ -1,0 +1,53 @@
+name: anime
+description: "YumeStream - Anime Streaming App"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+  hooks_riverpod: ^2.6.1
+  flutter_hooks: ^0.21.2
+
+  # HTTP Client
+  dio: ^5.8.0+1
+
+  # Navigation
+  go_router: ^15.1.2
+
+  # Image Caching
+  cached_network_image: ^3.4.1
+
+  # Local Storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Video Player (WebView for embed URLs)
+  webview_flutter: ^4.12.0
+
+  # Typography
+  google_fonts: ^6.2.1
+
+  # Icons
+  iconsax_plus: ^1.0.0
+
+  # UI Effects
+  shimmer: ^3.0.0
+
+  # Utilities
+  url_launcher: ^6.3.1
+  path_provider: ^2.1.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
