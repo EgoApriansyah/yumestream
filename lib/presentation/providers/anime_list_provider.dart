@@ -3,8 +3,11 @@ import '../../data/models/anime_model.dart';
 import '../../data/models/pagination_model.dart';
 import 'home_provider.dart';
 
+enum SortMode { defaultSort, az, za, highestRating }
+
 class AnimeListState {
   final List<AnimeModel> items;
+  final SortMode sortMode;
   final bool isLoading;
   final bool isFetchingNext;
   final bool hasReachedMax;
@@ -13,6 +16,7 @@ class AnimeListState {
 
   AnimeListState({
     required this.items,
+    this.sortMode = SortMode.defaultSort,
     this.isLoading = false,
     this.isFetchingNext = false,
     this.hasReachedMax = false,
@@ -22,6 +26,7 @@ class AnimeListState {
 
   AnimeListState copyWith({
     List<AnimeModel>? items,
+    SortMode? sortMode,
     bool? isLoading,
     bool? isFetchingNext,
     bool? hasReachedMax,
@@ -30,12 +35,38 @@ class AnimeListState {
   }) {
     return AnimeListState(
       items: items ?? this.items,
+      sortMode: sortMode ?? this.sortMode,
       isLoading: isLoading ?? this.isLoading,
       isFetchingNext: isFetchingNext ?? this.isFetchingNext,
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
       currentPage: currentPage ?? this.currentPage,
       error: error,
     );
+  }
+
+  List<AnimeModel> get sortedItems {
+    if (items.isEmpty) return items;
+    final list = List<AnimeModel>.from(items);
+    switch (sortMode) {
+      case SortMode.az:
+        list.sort((a, b) => (a.title ?? '').compareTo(b.title ?? ''));
+        break;
+      case SortMode.za:
+        list.sort((a, b) => (b.title ?? '').compareTo(a.title ?? ''));
+        break;
+      case SortMode.highestRating:
+        list.sort((a, b) {
+          final scoreA = double.tryParse(a.score ?? '0') ?? 0.0;
+          final scoreB = double.tryParse(b.score ?? '0') ?? 0.0;
+          return scoreB.compareTo(scoreA);
+        });
+        break;
+      case SortMode.defaultSort:
+      default:
+        // Keep original API order
+        break;
+    }
+    return list;
   }
 }
 
@@ -44,6 +75,10 @@ class AnimeListNotifier extends AutoDisposeFamilyNotifier<AnimeListState, String
   AnimeListState build(String arg) {
     Future.microtask(() => loadInitial());
     return AnimeListState(items: [], isLoading: true);
+  }
+
+  void setSortMode(SortMode mode) {
+    state = state.copyWith(sortMode: mode);
   }
 
   Future<void> loadInitial() async {

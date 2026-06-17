@@ -70,6 +70,34 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => context.pop(),
         ),
+        actions: [
+          PopupMenuButton<SortMode>(
+            icon: const Icon(Icons.sort, color: Colors.white),
+            color: AppColors.surface,
+            initialValue: state.sortMode,
+            onSelected: (mode) {
+              ref.read(animeListProvider(widget.listType).notifier).setSortMode(mode);
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: SortMode.defaultSort,
+                child: Text('Terbaru (Default)', style: TextStyle(color: Colors.white)),
+              ),
+              const PopupMenuItem(
+                value: SortMode.az,
+                child: Text('Abjad A-Z', style: TextStyle(color: Colors.white)),
+              ),
+              const PopupMenuItem(
+                value: SortMode.za,
+                child: Text('Abjad Z-A', style: TextStyle(color: Colors.white)),
+              ),
+              const PopupMenuItem(
+                value: SortMode.highestRating,
+                child: Text('Rating Tertinggi', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        ],
       ),
       body: state.isLoading && state.items.isEmpty
           ? const Center(child: CircularProgressIndicator())
@@ -89,9 +117,9 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 16,
                     ),
-                    itemCount: state.items.length + (state.isFetchingNext ? 3 : 0),
+                    itemCount: state.sortedItems.length + (state.isFetchingNext ? 3 : 0),
                     itemBuilder: (context, index) {
-                      if (index >= state.items.length) {
+                      if (index >= state.sortedItems.length) {
                         return Container(
                           decoration: BoxDecoration(
                             color: AppColors.elevated,
@@ -102,7 +130,7 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
                           ),
                         );
                       }
-                      final anime = state.items[index];
+                      final anime = state.sortedItems[index];
                       return AnimeCard(
                         anime: anime,
                         onTap: () => context.push('/detail/${anime.animeId}'),
