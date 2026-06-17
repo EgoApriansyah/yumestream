@@ -14,6 +14,7 @@ import 'presentation/screens/detail/anime_detail_screen.dart';
 import 'presentation/screens/player/episode_player_screen.dart';
 import 'presentation/screens/watchlist/watchlist_screen.dart';
 import 'presentation/screens/schedule/schedule_screen.dart';
+import 'presentation/screens/anime_list/anime_list_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -106,6 +107,13 @@ final GoRouter _router = GoRouter(
           poster: poster,
           animeTitle: animeTitle,
         );
+      },
+    ),
+    GoRoute(
+      path: '/list/:type',
+      builder: (context, state) {
+        final type = state.pathParameters['type']!;
+        return AnimeListScreen(listType: type);
       },
     ),
   ],

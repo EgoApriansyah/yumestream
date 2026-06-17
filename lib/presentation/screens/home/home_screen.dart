@@ -92,7 +92,7 @@ class HomeScreen extends HookConsumerWidget {
               // Ongoing Anime Section
               SectionHeader(
                 title: 'Anime Ongoing',
-                onSeeAll: () => debugPrint('See all ongoing'),
+                onSeeAll: () => context.push('/list/ongoing'),
               ),
               const SizedBox(height: 16),
               SizedBox(
@@ -119,7 +119,7 @@ class HomeScreen extends HookConsumerWidget {
               // Completed Anime Section
               SectionHeader(
                 title: 'Baru Tamat',
-                onSeeAll: () => debugPrint('See all completed'),
+                onSeeAll: () => context.push('/list/complete'),
               ),
               const SizedBox(height: 16),
               SizedBox(

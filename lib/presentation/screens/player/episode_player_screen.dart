@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -72,6 +73,25 @@ class EpisodePlayerScreen extends HookConsumerWidget {
           }, [episodeId]);
 
           final selectedServerId = useState<String?>(null);
+          final orientation = MediaQuery.of(context).orientation;
+          final isLandscape = orientation == Orientation.landscape;
+
+          // Fullscreen handling
+          useEffect(() {
+            if (isLandscape) {
+              SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+            } else {
+              SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+            }
+            return null;
+          }, [isLandscape]);
+
+          // Cleanup fullscreen on dispose
+          useEffect(() {
+            return () {
+              SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+            };
+          }, []);
           
           // Initial load
           useEffect(() {
@@ -81,26 +101,40 @@ class EpisodePlayerScreen extends HookConsumerWidget {
             return null;
           }, [episode.defaultStreamingUrl]);
 
+          final playerWidget = Stack(
+            children: [
+              if (isLandscape)
+                SizedBox.expand(child: WebViewWidget(controller: controller))
+              else
+                AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: WebViewWidget(controller: controller),
+                ),
+              Positioned(
+                top: isLandscape ? 16 : 8,
+                left: isLandscape ? 32 : 8,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () {
+                    if (isLandscape) {
+                      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+                    }
+                    context.pop();
+                  },
+                ),
+              ),
+            ],
+          );
+
+          if (isLandscape) {
+            return playerWidget;
+          }
+
           return SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Stack(
-                  children: [
-                    AspectRatio(
-                      aspectRatio: 16 / 9,
-                      child: WebViewWidget(controller: controller),
-                    ),
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => context.pop(),
-                      ),
-                    ),
-                  ],
-                ),
+                playerWidget,
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
