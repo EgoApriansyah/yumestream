@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/anime_model.dart';
+import '../../data/models/pagination_model.dart';
 import 'home_provider.dart';
 
 class AnimeListState {
@@ -49,9 +50,18 @@ class AnimeListNotifier extends AutoDisposeFamilyNotifier<AnimeListState, String
     state = state.copyWith(isLoading: true, error: null);
     try {
       final repo = ref.read(animeRepositoryProvider);
-      final result = arg == 'ongoing'
-          ? await repo.getOngoingAnime(page: 1)
-          : await repo.getCompleteAnime(page: 1);
+      
+      final ({List<AnimeModel> animeList, PaginationModel? pagination}) result;
+      if (arg == 'ongoing') {
+        result = await repo.getOngoingAnime(page: 1);
+      } else if (arg == 'complete') {
+        result = await repo.getCompleteAnime(page: 1);
+      } else if (arg.startsWith('genre:')) {
+        final slug = arg.substring(6);
+        result = await repo.getGenreAnime(slug, page: 1);
+      } else {
+        throw Exception('Tipe daftar tidak valid');
+      }
           
       final hasNext = result.pagination?.nextPage != null;
       
@@ -76,9 +86,18 @@ class AnimeListNotifier extends AutoDisposeFamilyNotifier<AnimeListState, String
     try {
       final nextPage = state.currentPage + 1;
       final repo = ref.read(animeRepositoryProvider);
-      final result = arg == 'ongoing'
-          ? await repo.getOngoingAnime(page: nextPage)
-          : await repo.getCompleteAnime(page: nextPage);
+      
+      final ({List<AnimeModel> animeList, PaginationModel? pagination}) result;
+      if (arg == 'ongoing') {
+        result = await repo.getOngoingAnime(page: nextPage);
+      } else if (arg == 'complete') {
+        result = await repo.getCompleteAnime(page: nextPage);
+      } else if (arg.startsWith('genre:')) {
+        final slug = arg.substring(6);
+        result = await repo.getGenreAnime(slug, page: nextPage);
+      } else {
+        throw Exception('Tipe daftar tidak valid');
+      }
           
       final hasNext = result.pagination?.nextPage != null;
 

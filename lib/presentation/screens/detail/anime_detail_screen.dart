@@ -132,7 +132,14 @@ class AnimeDetailScreen extends HookConsumerWidget {
                         child: Row(
                           children: detail.genreList.map((genre) => Padding(
                             padding: const EdgeInsets.only(right: 8),
-                            child: GenreTag.fromModel(genre: genre),
+                            child: GenreTag.fromModel(
+                              genre: genre,
+                              onTap: () {
+                                if (genre.genreId != null) {
+                                  context.push('/list/genre:${genre.genreId}?title=${Uri.encodeComponent(genre.title ?? 'Genre')}');
+                                }
+                              },
+                            ),
                           )).toList(),
                         ),
                       ),

@@ -9,10 +9,12 @@ import '../../widgets/error_widget.dart';
 
 class AnimeListScreen extends ConsumerStatefulWidget {
   final String listType;
+  final String? title;
 
   const AnimeListScreen({
     super.key,
     required this.listType,
+    this.title,
   });
 
   @override
@@ -41,6 +43,9 @@ class _AnimeListScreenState extends ConsumerState<AnimeListScreen> {
   }
 
   String get _title {
+    if (widget.title != null && widget.title!.isNotEmpty) {
+      return widget.title!;
+    }
     switch (widget.listType) {
       case 'ongoing':
         return 'Anime Ongoing';

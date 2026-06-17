@@ -113,7 +113,11 @@ final GoRouter _router = GoRouter(
       path: '/list/:type',
       builder: (context, state) {
         final type = state.pathParameters['type']!;
-        return AnimeListScreen(listType: type);
+        final title = state.uri.queryParameters['title'];
+        return AnimeListScreen(
+          listType: type,
+          title: title,
+        );
       },
     ),
   ],

@@ -94,6 +94,8 @@ class ApiService {
     }
   }
 
+
+
   // ─── GENRES ───────────────────────────────────────────
   Future<List<GenreModel>> getGenres() async {
     try {

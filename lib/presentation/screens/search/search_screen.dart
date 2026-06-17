@@ -63,12 +63,12 @@ class SearchScreen extends HookConsumerWidget {
         ),
       ),
       body: query.isEmpty
-          ? _buildGenresList(genresAsync)
+          ? _buildGenresList(context, genresAsync)
           : _buildSearchResults(ref),
     );
   }
 
-  Widget _buildGenresList(AsyncValue genresAsync) {
+  Widget _buildGenresList(BuildContext context, AsyncValue genresAsync) {
     return genresAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, __) => const Center(child: Text('Gagal memuat genre')),
@@ -85,7 +85,11 @@ class SearchScreen extends HookConsumerWidget {
               children: genres.map<Widget>((genre) {
                 return GenreTag.fromModel(
                   genre: genre,
-                  onTap: () => debugPrint('Navigate to genre ${genre.title}'),
+                  onTap: () {
+                    if (genre.genreId != null) {
+                      context.push('/list/genre:${genre.genreId}?title=${Uri.encodeComponent(genre.title ?? 'Genre')}');
+                    }
+                  },
                 );
               }).toList(),
             ),
