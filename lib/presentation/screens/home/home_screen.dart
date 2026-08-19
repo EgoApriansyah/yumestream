@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../data/models/schedule_model.dart';
 import '../../providers/home_provider.dart';
 import '../../widgets/anime_card.dart';
 import '../../widgets/section_header.dart';
@@ -155,7 +156,7 @@ class HomeScreen extends HookConsumerWidget {
                     if (scheduleList.isEmpty) {
                       return Center(
                         child: Text(
-                          'Tidak ada anime tayang hari ini',
+                          'Tidak ada update hari ini',
                           style: AppTextStyles.body.copyWith(color: AppColors.textMuted),
                         ),
                       );
@@ -166,23 +167,31 @@ class HomeScreen extends HookConsumerWidget {
                       itemCount: scheduleList.length,
                       separatorBuilder: (_, __) => const SizedBox(width: 12),
                       itemBuilder: (context, index) {
-                        final anime = scheduleList[index];
+                        final item = scheduleList[index];
                         return GestureDetector(
-                          onTap: () => context.push('/detail/${anime.animeId}'),
+                          onTap: () {
+                            if (item.type == UnifiedScheduleType.anime) {
+                              context.push('/detail/${item.id}');
+                            } else if (item.type == UnifiedScheduleType.dramabox) {
+                              context.push('/dramabox/detail/${item.id}');
+                            } else if (item.type == UnifiedScheduleType.komik) {
+                              context.push('/komik/detail/${item.id}');
+                            }
+                          },
                           child: SizedBox(
                             width: 120,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 AppCachedImage(
-                                  imageUrl: anime.poster,
+                                  imageUrl: item.imageUrl,
                                   width: 120,
                                   height: 160,
                                   borderRadius: 12,
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  anime.title,
+                                  item.title,
                                   style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,

@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../data/models/schedule_model.dart';
 import '../../providers/home_provider.dart';
 import '../../widgets/cached_image.dart';
 import '../../widgets/error_widget.dart';
@@ -87,10 +88,10 @@ class ScheduleScreen extends HookConsumerWidget {
                   orElse: () => scheduleData.first,
                 );
 
-                if (daySchedule.animeList.isEmpty) {
+                if (daySchedule.items.isEmpty) {
                   return Center(
                     child: Text(
-                      'Tidak ada anime tayang di hari ini',
+                      'Tidak ada tayangan atau update di hari ini',
                       style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
                     ),
                   );
@@ -98,18 +99,26 @@ class ScheduleScreen extends HookConsumerWidget {
 
                 return ListView.separated(
                   padding: const EdgeInsets.all(16),
-                  itemCount: daySchedule.animeList.length,
+                  itemCount: daySchedule.items.length,
                   separatorBuilder: (_, __) => const Divider(height: 32),
                   itemBuilder: (context, index) {
-                    final anime = daySchedule.animeList[index];
+                    final item = daySchedule.items[index];
                     return GestureDetector(
-                      onTap: () => context.push('/detail/${anime.animeId}'),
+                      onTap: () {
+                        if (item.type == UnifiedScheduleType.anime) {
+                          context.push('/detail/${item.id}');
+                        } else if (item.type == UnifiedScheduleType.dramabox) {
+                          context.push('/dramabox/detail/${item.id}');
+                        } else if (item.type == UnifiedScheduleType.komik) {
+                          context.push('/komik/detail/${item.id}');
+                        }
+                      },
                       behavior: HitTestBehavior.opaque,
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           AppCachedImage(
-                            imageUrl: anime.poster,
+                            imageUrl: item.imageUrl,
                             width: 80,
                             height: 110,
                             borderRadius: 8,
@@ -120,22 +129,46 @@ class ScheduleScreen extends HookConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  anime.title,
+                                  item.title,
                                   style: AppTextStyles.titleMedium,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.tagBackground,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    'TV Series',
-                                    style: AppTextStyles.caption,
-                                  ),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: item.type == UnifiedScheduleType.anime
+                                            ? AppColors.tagBackground
+                                            : item.type == UnifiedScheduleType.dramabox
+                                                ? Colors.red.withOpacity(0.15)
+                                                : Colors.green.withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        item.typeLabel,
+                                        style: AppTextStyles.caption.copyWith(
+                                          color: item.type == UnifiedScheduleType.anime
+                                              ? AppColors.accent
+                                              : item.type == UnifiedScheduleType.dramabox
+                                                  ? Colors.redAccent
+                                                  : Colors.greenAccent,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        item.subtitle,
+                                        style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),

@@ -7,6 +7,8 @@ import '../models/home_model.dart';
 import '../models/pagination_model.dart';
 import '../models/schedule_model.dart';
 import '../models/watch_history_model.dart';
+import '../models/dramabox_model.dart';
+import '../models/komik_model.dart';
 import '../services/api_service.dart';
 import '../services/local_storage_service.dart';
 
@@ -52,6 +54,55 @@ class AnimeRepository {
       _apiService.getServerUrl(serverId);
 
   Future<BatchModel> getBatch(String slug) => _apiService.getBatch(slug);
+
+  // ─── DramaBox API methods ─────────────────────────────
+  Future<List<DramaBoxBookModel>> getDramaBoxForyou({int page = 1}) =>
+      _apiService.getDramaBoxForyou(page: page);
+
+  Future<List<DramaBoxBookModel>> getDramaBoxLatest() =>
+      _apiService.getDramaBoxLatest();
+
+  Future<List<DramaBoxBookModel>> getDramaBoxTrending() =>
+      _apiService.getDramaBoxTrending();
+
+  Future<DramaBoxBookModel> getDramaBoxDetail(String bookId) =>
+      _apiService.getDramaBoxDetail(bookId);
+
+  Future<List<DramaBoxEpisodeModel>> getDramaBoxEpisodes(String bookId) =>
+      _apiService.getDramaBoxEpisodes(bookId);
+
+  Future<DramaBoxDecryptedModel> decryptDramaBoxUrl(String url) =>
+      _apiService.decryptDramaBoxUrl(url);
+
+  // ─── Comic API methods ────────────────────────────────
+  Future<List<ComicModel>> getComicLatest({int page = 1}) =>
+      _apiService.getComicLatest(page: page);
+
+  Future<List<ComicModel>> getComicPopuler({int page = 1}) =>
+      _apiService.getComicPopuler(page: page);
+
+  Future<List<ComicModel>> getComicTrending() => _apiService.getComicTrending();
+
+  Future<List<ComicModel>> getComicPustaka({int page = 1}) =>
+      _apiService.getComicPustaka(page: page);
+
+  Future<ComicDetailModel> getComicDetail(String slug) =>
+      _apiService.getComicDetail(slug);
+
+  Future<ComicChapterImagesModel> getComicChapterImages(String slug) =>
+      _apiService.getComicChapterImages(slug);
+
+  Future<ComicChapterNavigationModel> getComicChapterNavigation(String slug) =>
+      _apiService.getComicChapterNavigation(slug);
+
+  Future<List<ComicModel>> searchComic(String query, {int page = 1}) =>
+      _apiService.searchComic(query, page: page);
+
+  Future<List<ComicModel>> getComicByType(String type, {int page = 1}) =>
+      _apiService.getComicByType(type, page: page);
+
+  Future<List<ComicModel>> getComicByGenre(String genre, {int page = 1}) =>
+      _apiService.getComicByGenre(genre, page: page);
 
   // ─── Local Storage Methods ────────────────────────────
   List<WatchlistItemModel> getWatchlist() =>

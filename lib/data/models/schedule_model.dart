@@ -20,3 +20,33 @@ class ScheduleModel {
     );
   }
 }
+
+enum UnifiedScheduleType { anime, dramabox, komik }
+
+class UnifiedScheduleItem {
+  final String id;
+  final String title;
+  final String imageUrl;
+  final String subtitle;
+  final String typeLabel;
+  final UnifiedScheduleType type;
+
+  const UnifiedScheduleItem({
+    required this.id,
+    required this.title,
+    required this.imageUrl,
+    required this.subtitle,
+    required this.typeLabel,
+    required this.type,
+  });
+}
+
+class UnifiedScheduleSection {
+  final String day;
+  final List<UnifiedScheduleItem> items;
+
+  const UnifiedScheduleSection({
+    required this.day,
+    required this.items,
+  });
+}

@@ -15,7 +15,14 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  static const _routes = ['/main/home', '/main/search', '/main/watchlist', '/main/schedule'];
+  static const _routes = [
+    '/main/home',
+    '/main/search',
+    '/main/dramabox',
+    '/main/komik',
+    '/main/watchlist',
+    '/main/schedule',
+  ];
 
   void _onTap(int index) {
     if (_currentIndex != index) {
@@ -67,16 +74,28 @@ class _MainScreenState extends State<MainScreen> {
                   onTap: () => _onTap(1),
                 ),
                 _NavItem(
-                  icon: IconsaxPlusLinear.bookmark,
-                  activeIcon: IconsaxPlusBold.bookmark,
+                  icon: IconsaxPlusLinear.video_play,
+                  activeIcon: IconsaxPlusBold.video_play,
                   isActive: _currentIndex == 2,
                   onTap: () => _onTap(2),
                 ),
                 _NavItem(
-                  icon: IconsaxPlusLinear.calendar,
-                  activeIcon: IconsaxPlusBold.calendar,
+                  icon: IconsaxPlusLinear.book,
+                  activeIcon: IconsaxPlusBold.book,
                   isActive: _currentIndex == 3,
                   onTap: () => _onTap(3),
+                ),
+                _NavItem(
+                  icon: IconsaxPlusLinear.bookmark,
+                  activeIcon: IconsaxPlusBold.bookmark,
+                  isActive: _currentIndex == 4,
+                  onTap: () => _onTap(4),
+                ),
+                _NavItem(
+                  icon: IconsaxPlusLinear.calendar,
+                  activeIcon: IconsaxPlusBold.calendar,
+                  isActive: _currentIndex == 5,
+                  onTap: () => _onTap(5),
                 ),
               ],
             ),

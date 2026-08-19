@@ -2,6 +2,7 @@ class ApiConstants {
   ApiConstants._();
 
   static const String baseUrl = 'https://www.sankavollerei.web.id';
+  static const String sansekaiBaseUrl = 'https://api.sansekai.my.id/api';
 
   // Endpoints
   static const String home = '/anime/home';
@@ -10,6 +11,28 @@ class ApiConstants {
   static const String genre = '/anime/genre';
   static const String schedule = '/anime/schedule';
   static const String unlimited = '/anime/unlimited';
+
+  // DramaBox Endpoints
+  static const String dramaboxForyou = '/dramabox/foryou';
+  static const String dramaboxLatest = '/dramabox/latest';
+  static const String dramaboxTrending = '/dramabox/trending';
+  static String dramaboxDetail(String bookId) => '/dramabox/detail?bookId=$bookId';
+  static String dramaboxAllEpisode(String bookId) => '/dramabox/allepisode?bookId=$bookId';
+  static String dramaboxDecrypt(String url) => '/dramabox/decrypt?url=${Uri.encodeComponent(url)}';
+
+  // Comic Endpoints
+  static const String comicHomepage = '/comic/homepage';
+  static const String comicTerbaru = '/comic/terbaru';
+  static const String comicPopuler = '/comic/populer';
+  static const String comicTrending = '/comic/trending';
+  static const String comicGenres = '/comic/genres';
+  static String comicDetail(String slug) => '/comic/comic/$slug';
+  static String comicChapter(String slug) => '/comic/chapter/$slug';
+  static String comicChapterNavigation(String slug) => '/comic/chapter/$slug/navigation';
+  static String comicSearch(String query) => '/comic/search?q=${Uri.encodeComponent(query)}';
+  static String comicType(String type) => '/comic/type/$type';
+  static String comicGenre(String genre) => '/comic/genre/$genre';
+  static String comicPustaka(int page) => '/comic/pustaka/$page';
 
   // Parameterized endpoints
   static String genreBySlug(String slug) => '/anime/genre/$slug';

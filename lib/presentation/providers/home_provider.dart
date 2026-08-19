@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/services/api_service.dart';
 import '../../data/services/local_storage_service.dart';
@@ -5,6 +6,8 @@ import '../../data/repositories/anime_repository.dart';
 import '../../data/models/home_model.dart';
 import '../../data/models/schedule_model.dart';
 import '../../data/models/watch_history_model.dart';
+import '../../data/models/dramabox_model.dart';
+import '../../data/models/komik_model.dart';
 import '../../core/utils/extensions.dart';
 
 // ─── Core Service Providers ─────────────────────────────
@@ -30,9 +33,103 @@ final homeDataProvider = FutureProvider<HomeModel>((ref) async {
 });
 
 // ─── Schedule Provider ──────────────────────────────────
-final scheduleProvider = FutureProvider<List<ScheduleModel>>((ref) async {
+final scheduleProvider = FutureProvider<List<UnifiedScheduleSection>>((ref) async {
   final repo = ref.read(animeRepositoryProvider);
-  return repo.getSchedule();
+  
+  final results = await Future.wait([
+    repo.getSchedule(),
+    repo.getDramaBoxLatest().catchError((e) {
+      debugPrint("Gagal memuat DramaBox Latest: $e");
+      return <DramaBoxBookModel>[];
+    }),
+    repo.getComicLatest().catchError((e) {
+      debugPrint("Gagal memuat Comic Latest: $e");
+      return <ComicModel>[];
+    }),
+  ]);
+
+  final animeSchedule = results[0] as List<ScheduleModel>;
+  final dramaboxLatest = results[1] as List<DramaBoxBookModel>;
+  final comicLatest = results[2] as List<ComicModel>;
+
+  final days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+  final Map<String, List<UnifiedScheduleItem>> groupedItems = {
+    for (var day in days) day: [],
+  };
+
+  // 1. Group Anime
+  for (final schedule in animeSchedule) {
+    final day = schedule.day;
+    if (groupedItems.containsKey(day)) {
+      for (final anime in schedule.animeList) {
+        groupedItems[day]!.add(UnifiedScheduleItem(
+          id: anime.animeId,
+          title: anime.title,
+          imageUrl: anime.poster,
+          subtitle: anime.episodes != null && anime.episodes! > 0
+              ? '${anime.episodes} Episode'
+              : 'Status: ${anime.status ?? "Ongoing"}',
+          typeLabel: 'Anime',
+          type: UnifiedScheduleType.anime,
+        ));
+      }
+    }
+  }
+
+  // 2. Group DramaBox
+  for (final book in dramaboxLatest) {
+    if (book.shelfTime != null && book.shelfTime!.isNotEmpty) {
+      try {
+        final dateStr = book.shelfTime!.replaceAll(' ', 'T');
+        final dateTime = DateTime.parse(dateStr);
+        final day = dateTime.dayNameIndonesian;
+        if (groupedItems.containsKey(day)) {
+          groupedItems[day]!.add(UnifiedScheduleItem(
+            id: book.bookId,
+            title: book.bookName,
+            imageUrl: book.coverWap,
+            subtitle: '${book.chapterCount} Episode',
+            typeLabel: 'Drama Box',
+            type: UnifiedScheduleType.dramabox,
+          ));
+        }
+      } catch (e) {
+        debugPrint("Error parsing shelfTime for book ${book.bookName}: $e");
+      }
+    }
+  }
+
+  // 3. Group Comics
+  for (final comic in comicLatest) {
+    final timeStr = comic.updatedAt ?? comic.latestChapterTime;
+    if (timeStr != null && timeStr.isNotEmpty) {
+      try {
+        final dateTime = DateTime.parse(timeStr);
+        final day = dateTime.dayNameIndonesian;
+        if (groupedItems.containsKey(day)) {
+          groupedItems[day]!.add(UnifiedScheduleItem(
+            id: comic.mangaId,
+            title: comic.title,
+            imageUrl: comic.coverImageUrl,
+            subtitle: comic.latestChapterNumber != null && comic.latestChapterNumber!.isNotEmpty
+                ? 'Chapter ${comic.latestChapterNumber}'
+                : 'Rating: ${comic.userRate}',
+            typeLabel: 'Komik',
+            type: UnifiedScheduleType.komik,
+          ));
+        }
+      } catch (e) {
+        debugPrint("Error parsing update time for comic ${comic.title}: $e");
+      }
+    }
+  }
+
+  return days.map((day) {
+    return UnifiedScheduleSection(
+      day: day,
+      items: groupedItems[day]!,
+    );
+  }).toList();
 });
 
 final selectedDayProvider = StateProvider<String>((ref) {
@@ -40,14 +137,14 @@ final selectedDayProvider = StateProvider<String>((ref) {
 });
 
 // ─── Today Schedule (derived) ───────────────────────────
-final todayScheduleProvider = FutureProvider<List<dynamic>>((ref) async {
+final todayScheduleProvider = FutureProvider<List<UnifiedScheduleItem>>((ref) async {
   final scheduleAsync = await ref.watch(scheduleProvider.future);
   final today = DateTime.now().dayNameIndonesian;
   final todaySchedule = scheduleAsync.firstWhere(
     (s) => s.day == today,
-    orElse: () => ScheduleModel(day: today, animeList: []),
+    orElse: () => UnifiedScheduleSection(day: today, items: const []),
   );
-  return todaySchedule.animeList;
+  return todaySchedule.items;
 });
 
 // ─── Watch History Provider ─────────────────────────────

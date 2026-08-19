@@ -9,9 +9,12 @@ import '../models/genre_model.dart';
 import '../models/home_model.dart';
 import '../models/pagination_model.dart';
 import '../models/schedule_model.dart';
+import '../models/dramabox_model.dart';
+import '../models/komik_model.dart';
 
 class ApiService {
   late final Dio _dio;
+  late final Dio _sansekaiDio;
 
   ApiService() {
     _dio = Dio(
@@ -24,18 +27,36 @@ class ApiService {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        },
+      ),
+    );
+
+    _sansekaiDio = Dio(
+      BaseOptions(
+        baseUrl: ApiConstants.sansekaiBaseUrl,
+        connectTimeout:
+            const Duration(milliseconds: ApiConstants.connectTimeout),
+        receiveTimeout:
+            const Duration(milliseconds: ApiConstants.receiveTimeout),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         },
       ),
     );
 
     if (kDebugMode) {
-      _dio.interceptors.add(
-        LogInterceptor(
-          requestBody: false,
-          responseBody: false,
-          logPrint: (obj) => debugPrint(obj.toString()),
-        ),
+      final logger = LogInterceptor(
+        requestBody: false,
+        responseBody: false,
+        logPrint: (obj) => debugPrint(obj.toString()),
       );
+      _dio.interceptors.add(logger);
+      _sansekaiDio.interceptors.add(logger);
     }
   }
 
@@ -220,6 +241,245 @@ class ApiService {
         return Exception('Terjadi kesalahan (kode: $statusCode).');
       default:
         return Exception('Terjadi kesalahan. Silakan coba lagi.');
+    }
+  }
+
+  // ─── DRAMABOX METHODS ──────────────────────────────────
+  Future<List<DramaBoxBookModel>> getDramaBoxForyou({int page = 1}) async {
+    try {
+      final response = await _sansekaiDio.get(
+        ApiConstants.dramaboxForyou,
+        queryParameters: {'page': page},
+      );
+      final list = response.data as List;
+      return list.map((b) => DramaBoxBookModel.fromJson(b as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<List<DramaBoxBookModel>> getDramaBoxLatest() async {
+    try {
+      final response = await _sansekaiDio.get(ApiConstants.dramaboxLatest);
+      final list = response.data as List;
+      return list.map((b) => DramaBoxBookModel.fromJson(b as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<List<DramaBoxBookModel>> getDramaBoxTrending() async {
+    try {
+      final response = await _sansekaiDio.get(ApiConstants.dramaboxTrending);
+      final list = response.data as List;
+      return list.map((b) => DramaBoxBookModel.fromJson(b as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<DramaBoxBookModel> getDramaBoxDetail(String bookId) async {
+    try {
+      final response = await _sansekaiDio.get(ApiConstants.dramaboxDetail(bookId));
+      final data = response.data as Map<String, dynamic>;
+      // Check if wrapped in data
+      final bookJson = data['data'] ?? data;
+      return DramaBoxBookModel.fromJson(bookJson as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<List<DramaBoxEpisodeModel>> getDramaBoxEpisodes(String bookId) async {
+    try {
+      final response = await _sansekaiDio.get(ApiConstants.dramaboxAllEpisode(bookId));
+      final list = response.data as List;
+      return list.map((e) => DramaBoxEpisodeModel.fromJson(e as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<DramaBoxDecryptedModel> decryptDramaBoxUrl(String url) async {
+    try {
+      final response = await _sansekaiDio.get(ApiConstants.dramaboxDecrypt(url));
+      final data = response.data as Map<String, dynamic>;
+      return DramaBoxDecryptedModel.fromJson(data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ─── COMIC METHODS ────────────────────────────────────
+  List<ComicModel> _parseComicList(dynamic json) {
+    if (json == null) return [];
+    if (json is List) {
+      return json.map((x) => ComicModel.fromJson(x as Map<String, dynamic>)).toList();
+    }
+    if (json is Map) {
+      final list = json['comics'] ??
+          json['data'] ??
+          json['trending'] ??
+          json['popular'] ??
+          json['latest'] ??
+          json['recommendations'] ??
+          json['comicList'] ??
+          json['mangaList'] ??
+          [];
+      if (list is List) {
+        return list.map((x) => ComicModel.fromJson(x as Map<String, dynamic>)).toList();
+      }
+    }
+    return [];
+  }
+
+  Future<List<ComicModel>> getComicLatest({int page = 1}) async {
+    try {
+      final response = await _dio.get(
+        ApiConstants.comicTerbaru,
+        queryParameters: {'page': page, 'limit': 20},
+      );
+      return _parseComicList(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<List<ComicModel>> getComicPopuler({int page = 1}) async {
+    try {
+      final response = await _dio.get(
+        ApiConstants.comicPopuler,
+        queryParameters: {'page': page, 'limit': 20},
+      );
+      return _parseComicList(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<List<ComicModel>> getComicTrending() async {
+    try {
+      final response = await _dio.get(ApiConstants.comicTrending);
+      return _parseComicList(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<List<ComicModel>> getComicPustaka({int page = 1}) async {
+    try {
+      final response = await _dio.get(ApiConstants.comicPustaka(page));
+      final data = response.data;
+      if (data is Map && data['results'] != null) {
+        final list = data['results'] as List;
+        return list
+            .map((x) => ComicModel.fromJson(x as Map<String, dynamic>))
+            .toList();
+      }
+      return _parseComicList(data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<ComicDetailModel> getComicDetail(String slug) async {
+    try {
+      final response = await _dio.get(ApiConstants.comicDetail(slug));
+      final data = response.data as Map<String, dynamic>;
+      final comicJson = data['data'] ?? data;
+      return ComicDetailModel.fromJson(comicJson as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<ComicChapterImagesModel> getComicChapterImages(String slug) async {
+    try {
+      final response = await _dio.get(ApiConstants.comicChapter(slug));
+      final data = response.data as Map<String, dynamic>;
+      final chapterJson = data['data'] ?? data;
+      return ComicChapterImagesModel.fromJson(chapterJson as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<ComicChapterNavigationModel> getComicChapterNavigation(String slug) async {
+    try {
+      final response = await _dio.get(ApiConstants.comicChapterNavigation(slug));
+      final data = response.data as Map<String, dynamic>;
+      final navJson = data['data'] ?? data;
+      return ComicChapterNavigationModel.fromJson(navJson as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<List<ComicModel>> searchComic(String query, {int page = 1}) async {
+    try {
+      final response = await _dio.get(
+        ApiConstants.comicSearch(query),
+        queryParameters: {'page': page, 'limit': 20},
+      );
+      return _parseComicList(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<List<ComicModel>> getComicByType(String type, {int page = 1}) async {
+    final lowerType = type.toLowerCase().trim();
+    if (lowerType == 'terbaru' || lowerType == 'all' || lowerType.isEmpty) {
+      return getComicLatest(page: page);
+    }
+
+    try {
+      // Fetch 3 pages of pustaka in parallel per page batch to ensure plenty of items per type
+      final startPustakaPage = (page - 1) * 3 + 1;
+      final futures = [
+        getComicPustaka(page: startPustakaPage),
+        getComicPustaka(page: startPustakaPage + 1),
+        getComicPustaka(page: startPustakaPage + 2),
+      ];
+
+      final resultsList = await Future.wait(futures);
+      final List<ComicModel> combined = [];
+      for (final list in resultsList) {
+        for (final item in list) {
+          if (item.type != null &&
+              item.type!.toLowerCase().trim() == lowerType) {
+            combined.add(item);
+          }
+        }
+      }
+
+      // If page 1 and results are sparse, also merge from genre endpoint if matching
+      if (page == 1 && combined.length < 5) {
+        try {
+          final genreComics = await getComicByGenre(lowerType);
+          for (final g in genreComics) {
+            if (!combined.any((c) => c.mangaId == g.mangaId)) {
+              combined.add(g);
+            }
+          }
+        } catch (_) {}
+      }
+
+      return combined;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<List<ComicModel>> getComicByGenre(String genre, {int page = 1}) async {
+    try {
+      final response = await _dio.get(
+        ApiConstants.comicGenre(genre),
+        queryParameters: {'page': page, 'limit': 20},
+      );
+      return _parseComicList(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
     }
   }
 }
