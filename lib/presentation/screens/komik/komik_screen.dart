@@ -153,7 +153,7 @@ class _ComicGridTab extends HookConsumerWidget {
                 mainAxisSpacing: 16,
               ),
               itemCount: 8,
-              itemBuilder: (_, __) => const ShimmerCard(width: 110, height: 180),
+              itemBuilder: (_, _) => const ShimmerCard(width: 110, height: 180),
             );
           }
 
@@ -275,7 +275,7 @@ class _ComicSearchResults extends ConsumerWidget {
         return ListView.separated(
           padding: const EdgeInsets.all(16),
           itemCount: comics.length,
-          separatorBuilder: (_, __) =>
+          separatorBuilder: (_, _) =>
               const Divider(color: AppColors.divider, height: 24),
           itemBuilder: (context, index) {
             final comic = comics[index];

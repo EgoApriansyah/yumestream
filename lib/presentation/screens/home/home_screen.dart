@@ -18,6 +18,7 @@ class HomeScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(favoriteUpdatesCheckerProvider);
     final homeData = ref.watch(homeDataProvider);
     final watchHistory = ref.watch(watchHistoryProvider);
     final todaySchedule = ref.watch(todayScheduleProvider);
@@ -28,7 +29,16 @@ class HomeScreen extends HookConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(IconsaxPlusLinear.notification),
-            onPressed: () {},
+            tooltip: 'Cek Update Favorit',
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Memeriksa pembaruan favorit...'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+              ref.invalidate(favoriteUpdatesCheckerProvider);
+            },
           ),
         ],
       ),
@@ -74,7 +84,7 @@ class HomeScreen extends HookConsumerWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     scrollDirection: Axis.horizontal,
                     itemCount: watchHistory.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    separatorBuilder: (_, _) => const SizedBox(width: 12),
                     itemBuilder: (context, index) {
                       final history = watchHistory[index];
                       return ProgressCard(
@@ -102,7 +112,7 @@ class HomeScreen extends HookConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   scrollDirection: Axis.horizontal,
                   itemCount: data.ongoing.animeList.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
                   itemBuilder: (context, index) {
                     final anime = data.ongoing.animeList[index];
                     return SizedBox(
@@ -129,7 +139,7 @@ class HomeScreen extends HookConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   scrollDirection: Axis.horizontal,
                   itemCount: data.completed.animeList.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
                   itemBuilder: (context, index) {
                     final anime = data.completed.animeList[index];
                     return SizedBox(
@@ -151,7 +161,7 @@ class HomeScreen extends HookConsumerWidget {
                 height: 200,
                 child: todaySchedule.when(
                   loading: () => const ShimmerList(itemWidth: 120, itemHeight: 180),
-                  error: (_, __) => const Center(child: Text('Gagal memuat jadwal')),
+                  error: (_, _) => const Center(child: Text('Gagal memuat jadwal')),
                   data: (scheduleList) {
                     if (scheduleList.isEmpty) {
                       return Center(
@@ -165,15 +175,13 @@ class HomeScreen extends HookConsumerWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       scrollDirection: Axis.horizontal,
                       itemCount: scheduleList.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      separatorBuilder: (_, _) => const SizedBox(width: 12),
                       itemBuilder: (context, index) {
                         final item = scheduleList[index];
                         return GestureDetector(
                           onTap: () {
                             if (item.type == UnifiedScheduleType.anime) {
                               context.push('/detail/${item.id}');
-                            } else if (item.type == UnifiedScheduleType.dramabox) {
-                              context.push('/dramabox/detail/${item.id}');
                             } else if (item.type == UnifiedScheduleType.komik) {
                               context.push('/komik/detail/${item.id}');
                             }

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'core/theme/app_theme.dart';
 import 'data/models/watch_history_model.dart';
 import 'data/services/local_storage_service.dart';
+import 'data/services/notification_service.dart';
 import 'presentation/providers/home_provider.dart';
 import 'presentation/screens/main/main_screen.dart';
 import 'presentation/screens/splash/splash_screen.dart';
@@ -12,12 +13,9 @@ import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/search/search_screen.dart';
 import 'presentation/screens/detail/anime_detail_screen.dart';
 import 'presentation/screens/player/episode_player_screen.dart';
-import 'presentation/screens/watchlist/watchlist_screen.dart';
+import 'presentation/screens/favorite/favorite_screen.dart';
 import 'presentation/screens/schedule/schedule_screen.dart';
 import 'presentation/screens/anime_list/anime_list_screen.dart';
-import 'presentation/screens/dramabox/dramabox_screen.dart';
-import 'presentation/screens/dramabox/dramabox_detail_screen.dart';
-import 'presentation/screens/dramabox/dramabox_player_screen.dart';
 import 'presentation/screens/komik/komik_screen.dart';
 import 'presentation/screens/komik/komik_detail_screen.dart';
 import 'presentation/screens/komik/komik_reader_screen.dart';
@@ -34,10 +32,21 @@ void main() async {
   final localStorageService = LocalStorageService();
   await localStorageService.init();
 
+  // Initialize notifications
+  final notificationService = NotificationService();
+  await notificationService.init(
+    onSelectNotification: (route) {
+      if (route.isNotEmpty) {
+        _router.push(route);
+      }
+    },
+  );
+
   runApp(
     ProviderScope(
       overrides: [
         localStorageServiceProvider.overrideWithValue(localStorageService),
+        notificationServiceProvider.overrideWithValue(notificationService),
       ],
       child: const YumeStreamApp(),
     ),
@@ -81,21 +90,21 @@ final GoRouter _router = GoRouter(
           ),
         ),
         GoRoute(
-          path: '/main/dramabox',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: DramaBoxScreen(),
-          ),
-        ),
-        GoRoute(
           path: '/main/komik',
           pageBuilder: (context, state) => const NoTransitionPage(
             child: KomikScreen(),
           ),
         ),
         GoRoute(
+          path: '/main/favorite',
+          pageBuilder: (context, state) => const NoTransitionPage(
+            child: FavoriteScreen(),
+          ),
+        ),
+        GoRoute(
           path: '/main/watchlist',
           pageBuilder: (context, state) => const NoTransitionPage(
-            child: WatchlistScreen(),
+            child: FavoriteScreen(),
           ),
         ),
         GoRoute(
@@ -105,31 +114,6 @@ final GoRouter _router = GoRouter(
           ),
         ),
       ],
-    ),
-    GoRoute(
-      path: '/dramabox/detail/:bookId',
-      builder: (context, state) {
-        final bookId = state.pathParameters['bookId']!;
-        return DramaBoxDetailScreen(bookId: bookId);
-      },
-    ),
-    GoRoute(
-      path: '/dramabox/player/:bookId/:chapterId',
-      builder: (context, state) {
-        final bookId = state.pathParameters['bookId']!;
-        final chapterId = state.pathParameters['chapterId']!;
-        final extra = state.extra as Map?;
-        final title = extra?['title']?.toString();
-        final epIndex = extra?['epIndex'] as int?;
-        final epName = extra?['epName']?.toString();
-        return DramaBoxPlayerScreen(
-          bookId: bookId,
-          chapterId: chapterId,
-          title: title,
-          episodeIndex: epIndex ?? 0,
-          episodeName: epName ?? '',
-        );
-      },
     ),
     GoRoute(
       path: '/komik/detail/:slug',
@@ -143,10 +127,12 @@ final GoRouter _router = GoRouter(
       builder: (context, state) {
         final slug = state.pathParameters['slug']!;
         final extra = state.extra as Map?;
+        final comicSlug = extra?['comicSlug']?.toString();
         final comicTitle = extra?['comicTitle']?.toString();
         final chapterNumber = extra?['chapterNumber']?.toString();
         return ComicReaderScreen(
           chapterSlug: slug,
+          comicSlug: comicSlug,
           comicTitle: comicTitle,
           chapterNumber: chapterNumber,
         );
@@ -167,7 +153,7 @@ final GoRouter _router = GoRouter(
         final poster = extra?['poster']?.toString();
         final animeTitle = extra?['animeTitle']?.toString();
         return EpisodePlayerScreen(
-          episodeId: episodeId, 
+          episodeId: episodeId,
           poster: poster,
           animeTitle: animeTitle,
         );

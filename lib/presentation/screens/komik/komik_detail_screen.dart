@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../data/models/komik_model.dart';
 import '../../providers/komik_provider.dart';
 import '../../widgets/cached_image.dart';
 import '../../widgets/error_widget.dart';
@@ -15,6 +17,8 @@ class ComicDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detailAsync = ref.watch(comicDetailProvider(slug));
+    final favorites = ref.watch(comicFavoritesProvider);
+    final readChapters = ref.watch(comicReadChaptersProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -28,6 +32,8 @@ class ComicDetailScreen extends ConsumerWidget {
           ),
         ),
         data: (comic) {
+          final isFav = favorites.any((c) => c.mangaId == comic.mangaId);
+
           return CustomScrollView(
             slivers: [
               // ─── APP BAR WITH HEADER ──────────────────────────────
@@ -39,6 +45,40 @@ class ComicDetailScreen extends ConsumerWidget {
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
                   onPressed: () => context.pop(),
                 ),
+                actions: [
+                  IconButton(
+                    icon: Icon(
+                      isFav ? IconsaxPlusBold.heart : IconsaxPlusLinear.heart,
+                      color: isFav ? Colors.redAccent : Colors.white,
+                    ),
+                    tooltip: isFav ? 'Hapus dari Favorit' : 'Tambah ke Favorit',
+                    onPressed: () {
+                      final comicModel = ComicModel(
+                        mangaId: comic.mangaId,
+                        title: comic.title,
+                        coverImageUrl: comic.coverImageUrl,
+                        type: comic.type,
+                        latestChapterNumber: comic.chapters.isNotEmpty
+                            ? comic.chapters.first.chapterNumber
+                            : null,
+                        userRate: 0.0,
+                        viewCount: 0,
+                      );
+                      ref.read(comicFavoritesProvider.notifier).toggle(comicModel);
+                      ScaffoldMessenger.of(context).clearSnackBars();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            isFav
+                                ? 'Dihapus dari Favorit'
+                                : 'Ditambahkan ke Favorit',
+                          ),
+                          duration: const Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                  ),
+                ],
                 flexibleSpace: FlexibleSpaceBar(
                   background: Stack(
                     fit: StackFit.expand,
@@ -169,7 +209,16 @@ class ComicDetailScreen extends ConsumerWidget {
                       ],
 
                       // Chapters Title
-                      Text('Daftar Chapter', style: AppTextStyles.titleMedium),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Daftar Chapter', style: AppTextStyles.titleMedium),
+                          Text(
+                            '${comic.chapters.length} Chapter',
+                            style: AppTextStyles.caption.copyWith(color: AppColors.textMuted),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 12),
                     ],
                   ),
@@ -191,26 +240,84 @@ class ComicDetailScreen extends ConsumerWidget {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final ch = comic.chapters[index];
+                      final isRead = readChapters.contains('${comic.mangaId}_${ch.chapterId}') ||
+                          readChapters.contains(ch.chapterId);
+
                       return Container(
                         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.surface,
+                          color: isRead
+                              ? AppColors.surface.withValues(alpha: 0.6)
+                              : AppColors.surface,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.divider, width: 0.5),
+                          border: Border.all(
+                            color: isRead
+                                ? AppColors.accent.withValues(alpha: 0.3)
+                                : AppColors.divider,
+                            width: 0.5,
+                          ),
                         ),
                         child: ListTile(
                           onTap: () {
                             context.push(
                               '/komik/reader/${ch.chapterId}',
                               extra: {
+                                'comicSlug': comic.mangaId,
                                 'comicTitle': comic.title,
                                 'chapterNumber': ch.chapterNumber,
                               },
                             );
                           },
-                          title: Text(
-                            ch.chapterTitle ?? 'Chapter ${ch.chapterNumber}',
-                            style: AppTextStyles.label.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+                          leading: isRead
+                              ? Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.accent.withValues(alpha: 0.15),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.check_rounded,
+                                    color: AppColors.accent,
+                                    size: 16,
+                                  ),
+                                )
+                              : null,
+                          title: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  ch.chapterTitle ?? 'Chapter ${ch.chapterNumber}',
+                                  style: AppTextStyles.label.copyWith(
+                                    color: isRead
+                                        ? AppColors.textSecondary
+                                        : AppColors.textPrimary,
+                                    fontWeight: isRead
+                                        ? FontWeight.normal
+                                        : FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              if (isRead)
+                                Container(
+                                  margin: const EdgeInsets.only(left: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.accent.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'Sudah Dibaca',
+                                    style: AppTextStyles.caption.copyWith(
+                                      color: AppColors.accent,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                           subtitle: ch.createdAt != null && ch.createdAt!.isNotEmpty
                               ? Text(

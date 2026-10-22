@@ -2,7 +2,6 @@ class ApiConstants {
   ApiConstants._();
 
   static const String baseUrl = 'https://www.sankavollerei.web.id';
-  static const String sansekaiBaseUrl = 'https://api.sansekai.my.id/api';
 
   // Endpoints
   static const String home = '/anime/home';
@@ -11,14 +10,6 @@ class ApiConstants {
   static const String genre = '/anime/genre';
   static const String schedule = '/anime/schedule';
   static const String unlimited = '/anime/unlimited';
-
-  // DramaBox Endpoints
-  static const String dramaboxForyou = '/dramabox/foryou';
-  static const String dramaboxLatest = '/dramabox/latest';
-  static const String dramaboxTrending = '/dramabox/trending';
-  static String dramaboxDetail(String bookId) => '/dramabox/detail?bookId=$bookId';
-  static String dramaboxAllEpisode(String bookId) => '/dramabox/allepisode?bookId=$bookId';
-  static String dramaboxDecrypt(String url) => '/dramabox/decrypt?url=${Uri.encodeComponent(url)}';
 
   // Comic Endpoints
   static const String comicHomepage = '/comic/homepage';

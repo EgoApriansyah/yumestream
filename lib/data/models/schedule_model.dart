@@ -21,7 +21,7 @@ class ScheduleModel {
   }
 }
 
-enum UnifiedScheduleType { anime, dramabox, komik }
+enum UnifiedScheduleType { anime, komik }
 
 class UnifiedScheduleItem {
   final String id;

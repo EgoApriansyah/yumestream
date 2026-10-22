@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/komik_model.dart';
+import '../../data/repositories/anime_repository.dart';
 import 'home_provider.dart';
 
 // ─── PAGINATION STATE ──────────────────────────────────────
@@ -163,3 +164,71 @@ final comicByGenreProvider =
   final repo = ref.read(animeRepositoryProvider);
   return repo.getComicByGenre(genre);
 });
+
+// ─── COMIC FAVORITES PROVIDER ──────────────────────────────
+final comicFavoritesProvider =
+    StateNotifierProvider<ComicFavoritesNotifier, List<ComicModel>>((ref) {
+  final repo = ref.read(animeRepositoryProvider);
+  return ComicFavoritesNotifier(repo);
+});
+
+class ComicFavoritesNotifier extends StateNotifier<List<ComicModel>> {
+  final AnimeRepository _repo;
+
+  ComicFavoritesNotifier(this._repo) : super([]) {
+    _loadFavorites();
+  }
+
+  void _loadFavorites() {
+    state = _repo.getComicFavorites();
+  }
+
+  bool isFavorite(String mangaId) => _repo.isComicFavorite(mangaId);
+
+  Future<void> toggle(ComicModel comic) async {
+    await _repo.toggleComicFavorite(comic);
+    _loadFavorites();
+  }
+
+  Future<void> remove(String mangaId) async {
+    await _repo.removeComicFavorite(mangaId);
+    _loadFavorites();
+  }
+
+  void refresh() => _loadFavorites();
+}
+
+// ─── COMIC READ CHAPTERS PROVIDER ──────────────────────────
+final comicReadChaptersProvider =
+    StateNotifierProvider<ComicReadChaptersNotifier, Set<String>>((ref) {
+  final repo = ref.read(animeRepositoryProvider);
+  return ComicReadChaptersNotifier(repo);
+});
+
+class ComicReadChaptersNotifier extends StateNotifier<Set<String>> {
+  final AnimeRepository _repo;
+
+  ComicReadChaptersNotifier(this._repo) : super({}) {
+    _loadReadChapters();
+  }
+
+  void _loadReadChapters() {
+    state = _repo.getAllReadChapterSlugs();
+  }
+
+  bool isChapterRead({required String comicSlug, required String chapterSlug}) {
+    final compositeKey = '${comicSlug}_$chapterSlug';
+    return state.contains(compositeKey) || state.contains(chapterSlug);
+  }
+
+  Future<void> markAsRead({
+    required String comicSlug,
+    required String chapterSlug,
+  }) async {
+    await _repo.markChapterRead(
+      comicSlug: comicSlug,
+      chapterSlug: chapterSlug,
+    );
+    _loadReadChapters();
+  }
+}

@@ -7,7 +7,6 @@ import '../models/home_model.dart';
 import '../models/pagination_model.dart';
 import '../models/schedule_model.dart';
 import '../models/watch_history_model.dart';
-import '../models/dramabox_model.dart';
 import '../models/komik_model.dart';
 import '../services/api_service.dart';
 import '../services/local_storage_service.dart';
@@ -54,25 +53,6 @@ class AnimeRepository {
       _apiService.getServerUrl(serverId);
 
   Future<BatchModel> getBatch(String slug) => _apiService.getBatch(slug);
-
-  // ─── DramaBox API methods ─────────────────────────────
-  Future<List<DramaBoxBookModel>> getDramaBoxForyou({int page = 1}) =>
-      _apiService.getDramaBoxForyou(page: page);
-
-  Future<List<DramaBoxBookModel>> getDramaBoxLatest() =>
-      _apiService.getDramaBoxLatest();
-
-  Future<List<DramaBoxBookModel>> getDramaBoxTrending() =>
-      _apiService.getDramaBoxTrending();
-
-  Future<DramaBoxBookModel> getDramaBoxDetail(String bookId) =>
-      _apiService.getDramaBoxDetail(bookId);
-
-  Future<List<DramaBoxEpisodeModel>> getDramaBoxEpisodes(String bookId) =>
-      _apiService.getDramaBoxEpisodes(bookId);
-
-  Future<DramaBoxDecryptedModel> decryptDramaBoxUrl(String url) =>
-      _apiService.decryptDramaBoxUrl(url);
 
   // ─── Comic API methods ────────────────────────────────
   Future<List<ComicModel>> getComicLatest({int page = 1}) =>
@@ -131,4 +111,35 @@ class AnimeRepository {
 
   WatchHistoryModel? getLatestWatchForAnime(String animeId) =>
       _localStorageService.getLatestWatchForAnime(animeId);
+
+  // ─── Comic Local Storage Methods ──────────────────────
+  List<ComicModel> getComicFavorites() =>
+      _localStorageService.getComicFavorites();
+
+  bool isComicFavorite(String mangaId) =>
+      _localStorageService.isComicFavorite(mangaId);
+
+  Future<void> toggleComicFavorite(ComicModel comic) =>
+      _localStorageService.toggleComicFavorite(comic);
+
+  Future<void> removeComicFavorite(String mangaId) =>
+      _localStorageService.removeComicFavorite(mangaId);
+
+  bool isChapterRead({required String comicSlug, required String chapterSlug}) =>
+      _localStorageService.isChapterRead(
+        comicSlug: comicSlug,
+        chapterSlug: chapterSlug,
+      );
+
+  Future<void> markChapterRead({
+    required String comicSlug,
+    required String chapterSlug,
+  }) =>
+      _localStorageService.markChapterRead(
+        comicSlug: comicSlug,
+        chapterSlug: chapterSlug,
+      );
+
+  Set<String> getAllReadChapterSlugs() =>
+      _localStorageService.getAllReadChapterSlugs();
 }

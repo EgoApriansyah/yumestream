@@ -71,7 +71,7 @@ class SearchScreen extends HookConsumerWidget {
   Widget _buildGenresList(BuildContext context, AsyncValue genresAsync) {
     return genresAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(child: Text('Gagal memuat genre')),
+      error: (_, _) => const Center(child: Text('Gagal memuat genre')),
       data: (genres) => SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

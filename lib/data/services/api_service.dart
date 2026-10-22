@@ -9,33 +9,15 @@ import '../models/genre_model.dart';
 import '../models/home_model.dart';
 import '../models/pagination_model.dart';
 import '../models/schedule_model.dart';
-import '../models/dramabox_model.dart';
 import '../models/komik_model.dart';
 
 class ApiService {
   late final Dio _dio;
-  late final Dio _sansekaiDio;
 
   ApiService() {
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
-        connectTimeout:
-            const Duration(milliseconds: ApiConstants.connectTimeout),
-        receiveTimeout:
-            const Duration(milliseconds: ApiConstants.receiveTimeout),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'User-Agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        },
-      ),
-    );
-
-    _sansekaiDio = Dio(
-      BaseOptions(
-        baseUrl: ApiConstants.sansekaiBaseUrl,
         connectTimeout:
             const Duration(milliseconds: ApiConstants.connectTimeout),
         receiveTimeout:
@@ -56,7 +38,6 @@ class ApiService {
         logPrint: (obj) => debugPrint(obj.toString()),
       );
       _dio.interceptors.add(logger);
-      _sansekaiDio.interceptors.add(logger);
     }
   }
 
@@ -241,72 +222,6 @@ class ApiService {
         return Exception('Terjadi kesalahan (kode: $statusCode).');
       default:
         return Exception('Terjadi kesalahan. Silakan coba lagi.');
-    }
-  }
-
-  // ─── DRAMABOX METHODS ──────────────────────────────────
-  Future<List<DramaBoxBookModel>> getDramaBoxForyou({int page = 1}) async {
-    try {
-      final response = await _sansekaiDio.get(
-        ApiConstants.dramaboxForyou,
-        queryParameters: {'page': page},
-      );
-      final list = response.data as List;
-      return list.map((b) => DramaBoxBookModel.fromJson(b as Map<String, dynamic>)).toList();
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  Future<List<DramaBoxBookModel>> getDramaBoxLatest() async {
-    try {
-      final response = await _sansekaiDio.get(ApiConstants.dramaboxLatest);
-      final list = response.data as List;
-      return list.map((b) => DramaBoxBookModel.fromJson(b as Map<String, dynamic>)).toList();
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  Future<List<DramaBoxBookModel>> getDramaBoxTrending() async {
-    try {
-      final response = await _sansekaiDio.get(ApiConstants.dramaboxTrending);
-      final list = response.data as List;
-      return list.map((b) => DramaBoxBookModel.fromJson(b as Map<String, dynamic>)).toList();
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  Future<DramaBoxBookModel> getDramaBoxDetail(String bookId) async {
-    try {
-      final response = await _sansekaiDio.get(ApiConstants.dramaboxDetail(bookId));
-      final data = response.data as Map<String, dynamic>;
-      // Check if wrapped in data
-      final bookJson = data['data'] ?? data;
-      return DramaBoxBookModel.fromJson(bookJson as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  Future<List<DramaBoxEpisodeModel>> getDramaBoxEpisodes(String bookId) async {
-    try {
-      final response = await _sansekaiDio.get(ApiConstants.dramaboxAllEpisode(bookId));
-      final list = response.data as List;
-      return list.map((e) => DramaBoxEpisodeModel.fromJson(e as Map<String, dynamic>)).toList();
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  Future<DramaBoxDecryptedModel> decryptDramaBoxUrl(String url) async {
-    try {
-      final response = await _sansekaiDio.get(ApiConstants.dramaboxDecrypt(url));
-      final data = response.data as Map<String, dynamic>;
-      return DramaBoxDecryptedModel.fromJson(data);
-    } on DioException catch (e) {
-      throw _handleError(e);
     }
   }
 

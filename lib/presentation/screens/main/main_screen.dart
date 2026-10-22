@@ -18,9 +18,8 @@ class _MainScreenState extends State<MainScreen> {
   static const _routes = [
     '/main/home',
     '/main/search',
-    '/main/dramabox',
     '/main/komik',
-    '/main/watchlist',
+    '/main/favorite',
     '/main/schedule',
   ];
 
@@ -64,38 +63,37 @@ class _MainScreenState extends State<MainScreen> {
                 _NavItem(
                   icon: IconsaxPlusLinear.home_2,
                   activeIcon: IconsaxPlusBold.home_2,
+                  label: 'Home',
                   isActive: _currentIndex == 0,
                   onTap: () => _onTap(0),
                 ),
                 _NavItem(
                   icon: IconsaxPlusLinear.search_normal_1,
                   activeIcon: IconsaxPlusBold.search_normal_1,
+                  label: 'Cari',
                   isActive: _currentIndex == 1,
                   onTap: () => _onTap(1),
                 ),
                 _NavItem(
-                  icon: IconsaxPlusLinear.video_play,
-                  activeIcon: IconsaxPlusBold.video_play,
+                  icon: IconsaxPlusLinear.book,
+                  activeIcon: IconsaxPlusBold.book,
+                  label: 'Komik',
                   isActive: _currentIndex == 2,
                   onTap: () => _onTap(2),
                 ),
                 _NavItem(
-                  icon: IconsaxPlusLinear.book,
-                  activeIcon: IconsaxPlusBold.book,
+                  icon: IconsaxPlusLinear.heart,
+                  activeIcon: IconsaxPlusBold.heart,
+                  label: 'Favorit',
                   isActive: _currentIndex == 3,
                   onTap: () => _onTap(3),
                 ),
                 _NavItem(
-                  icon: IconsaxPlusLinear.bookmark,
-                  activeIcon: IconsaxPlusBold.bookmark,
-                  isActive: _currentIndex == 4,
-                  onTap: () => _onTap(4),
-                ),
-                _NavItem(
                   icon: IconsaxPlusLinear.calendar,
                   activeIcon: IconsaxPlusBold.calendar,
-                  isActive: _currentIndex == 5,
-                  onTap: () => _onTap(5),
+                  label: 'Jadwal',
+                  isActive: _currentIndex == 4,
+                  onTap: () => _onTap(4),
                 ),
               ],
             ),
@@ -109,12 +107,14 @@ class _MainScreenState extends State<MainScreen> {
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final IconData activeIcon;
+  final String label;
   final bool isActive;
   final VoidCallback onTap;
 
   const _NavItem({
     required this.icon,
     required this.activeIcon,
+    required this.label,
     required this.isActive,
     required this.onTap,
   });
@@ -125,7 +125,7 @@ class _NavItem extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 56,
+        width: 60,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

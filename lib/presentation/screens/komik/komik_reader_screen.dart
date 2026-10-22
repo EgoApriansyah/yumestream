@@ -11,12 +11,14 @@ import '../../widgets/error_widget.dart';
 
 class ComicReaderScreen extends HookConsumerWidget {
   final String chapterSlug;
+  final String? comicSlug;
   final String? comicTitle;
   final String? chapterNumber;
 
   const ComicReaderScreen({
     super.key,
     required this.chapterSlug,
+    this.comicSlug,
     this.comicTitle,
     this.chapterNumber,
   });
@@ -60,6 +62,17 @@ class ComicReaderScreen extends HookConsumerWidget {
           onRetry: () => ref.invalidate(comicChapterImagesProvider(chapterSlug)),
         ),
         data: (chapter) {
+          // Mark chapter as read
+          useEffect(() {
+            Future.microtask(() {
+              ref.read(comicReadChaptersProvider.notifier).markAsRead(
+                    comicSlug: comicSlug ?? '',
+                    chapterSlug: chapterSlug,
+                  );
+            });
+            return null;
+          }, [chapterSlug]);
+
           if (chapter.images.isEmpty) {
             return const Center(
               child: Text(
@@ -186,6 +199,7 @@ class ComicReaderScreen extends HookConsumerWidget {
                                       context.pushReplacement(
                                         '/komik/reader/$prevSlug',
                                         extra: {
+                                          'comicSlug': comicSlug,
                                           'comicTitle': comicTitle ?? chapter.mangaTitle,
                                           'chapterNumber': numStr,
                                         },
@@ -211,6 +225,7 @@ class ComicReaderScreen extends HookConsumerWidget {
                                       context.pushReplacement(
                                         '/komik/reader/$nextSlug',
                                         extra: {
+                                          'comicSlug': comicSlug,
                                           'comicTitle': comicTitle ?? chapter.mangaTitle,
                                           'chapterNumber': numStr,
                                         },

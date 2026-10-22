@@ -135,10 +135,8 @@ class AnimeDetailScreen extends HookConsumerWidget {
                             child: GenreTag.fromModel(
                               genre: genre,
                               onTap: () {
-                                if (genre.genreId != null) {
-                                  context.push('/list/genre:${genre.genreId}?title=${Uri.encodeComponent(genre.title ?? 'Genre')}');
-                                }
-                              },
+                                context.push('/list/genre:${genre.genreId}?title=${Uri.encodeComponent(genre.title ?? 'Genre')}');
+                                                            },
                             ),
                           )).toList(),
                         ),

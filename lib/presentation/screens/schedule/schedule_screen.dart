@@ -21,7 +21,7 @@ class ScheduleScreen extends HookConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Jadwal Tayang', style: AppTextStyles.titleLarge),
+        title: Text('Jadwal Rilis', style: AppTextStyles.titleLarge),
       ),
       body: Column(
         children: [
@@ -60,8 +60,8 @@ class ScheduleScreen extends HookConsumerWidget {
               loading: () => ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: 10,
-                separatorBuilder: (_, __) => const SizedBox(height: 16),
-                itemBuilder: (_, __) => Row(
+                separatorBuilder: (_, _) => const SizedBox(height: 16),
+                itemBuilder: (_, _) => Row(
                   children: [
                     const ShimmerCard(width: 80, height: 110),
                     const SizedBox(width: 16),
@@ -100,15 +100,13 @@ class ScheduleScreen extends HookConsumerWidget {
                 return ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: daySchedule.items.length,
-                  separatorBuilder: (_, __) => const Divider(height: 32),
+                  separatorBuilder: (_, _) => const Divider(height: 32),
                   itemBuilder: (context, index) {
                     final item = daySchedule.items[index];
                     return GestureDetector(
                       onTap: () {
                         if (item.type == UnifiedScheduleType.anime) {
                           context.push('/detail/${item.id}');
-                        } else if (item.type == UnifiedScheduleType.dramabox) {
-                          context.push('/dramabox/detail/${item.id}');
                         } else if (item.type == UnifiedScheduleType.komik) {
                           context.push('/komik/detail/${item.id}');
                         }
@@ -142,9 +140,7 @@ class ScheduleScreen extends HookConsumerWidget {
                                       decoration: BoxDecoration(
                                         color: item.type == UnifiedScheduleType.anime
                                             ? AppColors.tagBackground
-                                            : item.type == UnifiedScheduleType.dramabox
-                                                ? Colors.red.withOpacity(0.15)
-                                                : Colors.green.withOpacity(0.15),
+                                            : Colors.green.withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
@@ -152,9 +148,7 @@ class ScheduleScreen extends HookConsumerWidget {
                                         style: AppTextStyles.caption.copyWith(
                                           color: item.type == UnifiedScheduleType.anime
                                               ? AppColors.accent
-                                              : item.type == UnifiedScheduleType.dramabox
-                                                  ? Colors.redAccent
-                                                  : Colors.greenAccent,
+                                              : Colors.greenAccent,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
